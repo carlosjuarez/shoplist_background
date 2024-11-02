@@ -69,7 +69,6 @@ router.patch('/:shoplistId/item/:itemId/purchase', authenticateToken, async (req
     const {purchased} = req.body;
 
     try{
-        const list = await Shoplist.find();
         const shoplist = await Shoplist.findOneAndUpdate(
           {_id: shoplistId, "items._id": itemId, userId: req.user._id},
           {$set: { 'items.$.purchased': purchased }},
@@ -82,5 +81,24 @@ router.patch('/:shoplistId/item/:itemId/purchase', authenticateToken, async (req
         res.status(500).send('Error updating item status');
     }
 });
+
+
+router.patch('/:shoplistId/item/:itemId/archive', authenticateToken, async (req,res) => {
+    const {shoplistId, itemId } = req.params;
+    const { archived } = req.body;
+    try{
+        const shoplist = await Shoplist.findOneAndUpdate(
+            {_id: shoplistId, "items._id": itemId, userId: req.user._id},
+            {$set: { 'items.$.archived': archived }},
+            {new: true}
+        );
+        if(!shoplist) return res.status(404).text('Shoplist item not found');
+        res.status(200).json(shoplist);
+    }catch(error){
+        console.log(error);
+        res.status(500).send('Error archiving item')
+    }
+});
+
 
 module.exports = router;

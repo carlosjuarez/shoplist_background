@@ -251,4 +251,95 @@ describe('Shoplist tests', () =>{
         expect(updateResponse.statusCode).toBe(200);
         expect(updateResponse.body.items[0].purchased).toBe(false);
     });
+
+    it('should archive an item in the shoplist', async () => {
+      const shoplistData = {
+        name: 'Weekly Groceries',
+        date: new Date(),
+        items: [
+          { productId: product1._id, quantity: 2 },
+          { productId: product2._id, quantity: 1 }
+        ]
+      };
+    
+      // First, create a shoplist
+      const createResponse = await request(app)
+        .post('/shoplists')
+        .set('Authorization', `Bearer ${token}`)
+        .send(shoplistData);
+    
+      const shoplistId = createResponse.body._id;
+      const itemId = createResponse.body.items[0]._id;
+    
+      // Archive the first item
+      const archiveResponse = await request(app)
+        .patch(`/shoplists/${shoplistId}/item/${itemId}/archive`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ archived: true });
+    
+      expect(archiveResponse.statusCode).toBe(200);
+      expect(archiveResponse.body.items[0].archived).toBe(true);
+    });
+
+    it('should unarchive an item in the shoplist', async () => {
+      const shoplistData = {
+        name: 'Weekly Groceries',
+        date: new Date(),
+        items: [
+          { productId: product1._id, quantity: 2, archived: true },
+          { productId: product2._id, quantity: 1 }
+        ]
+      };
+    
+      // First, create a shoplist with an archived item
+      const createResponse = await request(app)
+        .post('/shoplists')
+        .set('Authorization', `Bearer ${token}`)
+        .send(shoplistData);
+    
+      const shoplistId = createResponse.body._id;
+      const itemId = createResponse.body.items[0]._id;
+    
+      // Unarchive the first item
+      const unarchiveResponse = await request(app)
+        .patch(`/shoplists/${shoplistId}/item/${itemId}/archive`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ archived: false });
+    
+      expect(unarchiveResponse.statusCode).toBe(200);
+      expect(unarchiveResponse.body.items[0].archived).toBe(false);
+    });
+
+    it('should only archive the targeted item in the shoplist', async () => {
+      const shoplistData = {
+        name: 'Weekly Groceries',
+        date: new Date(),
+        items: [
+          { productId: product1._id, quantity: 2 },
+          { productId: product2._id, quantity: 1 }
+        ]
+      };
+    
+      // First, create a shoplist
+      const createResponse = await request(app)
+        .post('/shoplists')
+        .set('Authorization', `Bearer ${token}`)
+        .send(shoplistData);
+    
+      const shoplistId = createResponse.body._id;
+      const itemIdToArchive = createResponse.body.items[0]._id;
+      const unaffectedItemId = createResponse.body.items[1]._id;
+    
+      // Archive the first item
+      const archiveResponse = await request(app)
+        .patch(`/shoplists/${shoplistId}/item/${itemIdToArchive}/archive`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ archived: true });
+    
+      // Check that only the targeted item is archived
+      expect(archiveResponse.statusCode).toBe(200);
+      expect(archiveResponse.body.items[0].archived).toBe(true);
+      expect(archiveResponse.body.items[1].archived).toBe(false);
+    });
+
 });

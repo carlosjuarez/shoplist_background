@@ -8,7 +8,8 @@ const shoplistSchema = new mongoose.Schema({
         {
             productId: {type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true},
             quantity: { type: Number, required: true},
-            purchased: { type: Boolean, default: false}
+            purchased: { type: Boolean, default: false},
+            archived: { type: Boolean, default : false}
         }
     ]
 });
