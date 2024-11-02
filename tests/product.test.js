@@ -23,11 +23,12 @@ beforeEach(async () => {
     .post('/users/login')
     .send(userData);
 
-    token = loginResult.body.token;
+    token = loginResult.body.accessToken;
 
 });
 
 describe('Product tests', () => {
+
     it('should add a new product', async () => {
         const productData = {
             name: "Milk",

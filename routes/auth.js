@@ -36,12 +36,43 @@ router.post('/login', async (req,res) => {
             return res.status(402).send('Invalid Username or password');
         }
 
-        const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h'});
-        res.status(200).json({token});
+        const accessToken = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h'});
+        const refreshToken = jwt.sign({ username }, process.env.REFRESH_SECRET, { expiresIn: '7d'});
 
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        res.status(200).json({accessToken, refreshToken});
     } catch (error){
         res.status(500).send('Error logging in');
     }
+});
+
+router.post('/refresh', async (req,res) =>{
+    const { refreshToken } = req.body;
+
+    if(!refreshToken) return res.status(401).send('Refresh token required');
+
+    const user = await User.findOne({refreshToken});
+    if(!user) return res.status(403).send('Invalid refresh token');
+
+    jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err,decoded) => {
+        if (err) return res.status(403).send('Invalid refresh token');
+        const newAccessToken = jwt.sign({username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h'});
+        res.json({accessToken: newAccessToken});
+    });
+});
+
+router.post('/logout', async (req,res) => {
+    const {refreshToken} = req.body;
+
+    const user = await User.findOne({refreshToken});
+    if(!user) return res.status(403).send('Invalid refresh token');
+
+    user.refreshToken = null;
+    await user.save();
+
+    res.status(200).send('Logged out');
 });
 
 router.delete('/delete', authenticateToken, async (req,res) => {

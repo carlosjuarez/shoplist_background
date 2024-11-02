@@ -27,7 +27,7 @@ beforeEach(async () => {
       .post('/users/login')
       .send(userData);
   
-    token = loginResponse.body.token;
+    token = loginResponse.body.accessToken;
 
     product1 = await new Product({ name: 'Milk', date: new Date(), type: 'food', userId: registerResponse.body._id }).save();
     product2 = await new Product({ name: 'Bread', date: new Date(), type: 'bakery', userId: registerResponse.body._id }).save();
@@ -216,9 +216,6 @@ describe('Shoplist tests', () =>{
         const shoplistId = createResponse.body._id;
         const itemId = createResponse.body.items[0]._id;
 
-        console.log('Created')
-        console.log(createResponse.body);
-      
         const updateResponse = await request(app)
           .patch(`/shoplists/${shoplistId}/item/${itemId}/purchase`)
           .set('Authorization', `Bearer ${token}`)
