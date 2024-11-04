@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/auth');
 const Product = require('../models/product');
+const Group = require('../models/group');
 const Shoplist = require('../models/shoplist');
 
 router.post('/', authenticateToken, async (req, res) => {
@@ -12,7 +13,6 @@ router.post('/', authenticateToken, async (req, res) => {
         shoplist.save();
         res.status(201).json(shoplist);
     } catch (error) {
-        console.log(error);
         res.status(500).send('Error creating shoplist');
     }
 });
@@ -43,7 +43,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 router.get('/:id', authenticateToken, async (req, res) => {
     const shoplistId = req.params.id;
-    const groupId = req.query;
+    const { groupId } = req.body;
     try {
         if (groupId) {
             const group = await Group.findById(groupId);
@@ -52,7 +52,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
             }
         }
 
-        const shoplist = await Shoplist.findOne({ _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: group }] });
+        const shoplist = await Shoplist.findOne({ _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: groupId }] });
         if (!shoplist) return res.status(404).send('Shoplist not found');
         res.status(200).json(shoplist);
     } catch (error) {
@@ -72,7 +72,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
             }
         }
         const shoplist = await Shoplist.findOneAndUpdate(
-            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: group }] },
+            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: groupId }] },
             { name, items },
             { new: true }
         );
@@ -85,7 +85,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     const shoplistId = req.params.id;
-    const groupId = req.query;
+    const { groupId } = req.query;
     try {
         if (groupId) {
             const group = await Group.findById(groupId);
@@ -94,7 +94,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
             }
         }
 
-        const shoplist = await Shoplist.findOneAndDelete({ _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: group }] });
+        const shoplist = await Shoplist.findOneAndDelete({ _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: groupId }] });
         if (!shoplist) return res.status(404).send('Shoplist not found');
         res.status(200).send('Shoplist deleted');
     } catch (error) {
@@ -115,7 +115,7 @@ router.patch('/:shoplistId/item/:itemId/purchase', authenticateToken, async (req
         }
 
         const shoplist = await Shoplist.findOneAndUpdate(
-            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: group }] },
+            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: groupId }], "items._id": itemId },
             { $set: { 'items.$.purchased': purchased } },
             { new: true }
         );
@@ -141,14 +141,13 @@ router.patch('/:shoplistId/item/:itemId/archive', authenticateToken, async (req,
         }
 
         const shoplist = await Shoplist.findOneAndUpdate(
-            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: group }] },
+            { _id: shoplistId, $or: [{ userId: req.user._id }, { groupId: groupId }], "items._id": itemId },
             { $set: { 'items.$.archived': archived } },
             { new: true }
         );
         if (!shoplist) return res.status(404).text('Shoplist item not found');
         res.status(200).json(shoplist);
     } catch (error) {
-        console.log(error);
         res.status(500).send('Error archiving item')
     }
 });

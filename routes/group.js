@@ -15,7 +15,6 @@ router.post('/', authenticateToken, async (req, res) => {
         await newGroup.save()
         res.status(201).json(newGroup);
     } catch (error) {
-        console.log(error);
         res.status(500).send('Error creating group');
     }
 });
@@ -45,7 +44,6 @@ router.post('/join', authenticateToken, async (req, res) => {
         }
         res.status(200).json(group);
     } catch (error) {
-        console.log(error);
         res.status(500).send('Error joining group');
     }
 });

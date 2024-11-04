@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/auth');
 const Product = require('../models/product');
+const Group = require('../models/group');
 
 router.post('/', authenticateToken, async (req, res) => {
     const { name, date, type, groupId } = req.body;
@@ -18,38 +19,35 @@ router.post('/', authenticateToken, async (req, res) => {
             newProduct = new Product({ name, date, type, userId: req.user._id });
         }
         await newProduct.save();
-        res.status(201).json(product);
+        res.status(201).json(newProduct);
     } catch (error) {
+        console.log(error);
         res.status(500).send('Error adding product');
     }
 });
 
 router.get('/', authenticateToken, async (req, res) => {
     const { groupId } = req.query;
-
     try {
         let products;
         if (groupId) {
-
             const group = await Group.findById(groupId);
             if (!group || !group.members.includes(req.user._id)) {
-                return res.status(403).send('Unaauthorized access to group products');
+
+                return res.status(403).send('Unauthorized access to group products');
             }
-            products = await Product.find({ groupId });
-        } else {
-            products = await Product.find({ userId: req.user._id });
         }
-
+        products = await Product.find({ $or: [{ userId: req.user._id }, { groupId: groupId }] });
         res.status(200).json(products);
-
     } catch (error) {
-        console.error(error);
+        console.log(error);
         res.status(500).send('Error fetching products');
     }
 });
 
 router.get('/:id', authenticateToken, async (req, res) => {
-    const { productId, groupId } = req.params.id;
+    const productId = req.params.id;
+    const { groupId } = req.query;
     try {
         if (groupId) {
             const group = await Group.findById(groupId);
@@ -65,6 +63,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
                 { groupId: groupId }
             ]
         });
+        if (!product) return res.status(404).send('Product not found');
         res.status(200).json(products);
     } catch (error) {
         res.status(404).send('Product not found');
@@ -105,7 +104,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
 router.delete('/:id', authenticateToken, async (req, res) => {
     const productId = req.params.id;
-    const groupId = req.query.groupId;
+    const { groupId } = req.query;
     try {
 
         if (groupId) {
