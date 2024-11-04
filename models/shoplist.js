@@ -2,14 +2,15 @@ const mongoose = require('mongoose');
 
 const shoplistSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    date: { type: Date, required: true},
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    date: { type: Date, required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
     items: [
         {
-            productId: {type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true},
-            quantity: { type: Number, required: true},
-            purchased: { type: Boolean, default: false},
-            archived: { type: Boolean, default : false}
+            productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+            quantity: { type: Number, required: true },
+            purchased: { type: Boolean, default: false },
+            archived: { type: Boolean, default: false }
         }
     ]
 });

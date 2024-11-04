@@ -6,6 +6,7 @@ const app = express();
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/product');
 const shoplistRoutes = require('./routes/shoplist');
+const groupRoutes = require('./routes/group')
 const authenticateToken = require('./middleware/auth');
 const Shoplist = require('./models/shoplist');
                     
@@ -16,6 +17,7 @@ connectDB();
 app.use('/users', authRoutes);
 app.use('/products', productRoutes);
 app.use('/shoplists', shoplistRoutes);
+app.use('/groups', groupRoutes);
 
 app.get('/protected', authenticateToken, (req,res) => {
     res.status(200).send(`Hello, ${req.user.username}, you have access to this route`);
