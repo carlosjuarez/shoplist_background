@@ -32,12 +32,13 @@ describe('User Authentication Tests', () => {
         expect(user.username).toBe(userData.username);
     });
  */
-    it('should log in an return access and refresh token', async () => {
+    it('should log in an return user, access and refresh token', async () => {
         const response = await request(app)
             .post('/users/login')
             .send(userData);
 
         expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty('user');
         expect(response.body).toHaveProperty('accessToken');
         expect(response.body).toHaveProperty('refreshToken');
         accessToken = response.body.accessToken;
@@ -68,7 +69,7 @@ describe('User Authentication Tests', () => {
             .post('/users/refresh')
             .send({ refreshToken: invalidToken });
 
-        expect(response.statusCode).toBe(401);
+        expect(response.statusCode).toBe(403);
         expect(response.text).toBe('Invalid refresh token');
     });
 

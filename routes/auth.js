@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
         user.refreshToken = refreshToken;
         await user.save();
 
-        res.status(200).json({ accessToken, refreshToken });
+        res.status(200).json({ user: user, accessToken, refreshToken });
     } catch (error) {
         console.log(error)
         res.status(500).send('Error logging in');
